@@ -7,10 +7,10 @@
 // not set. To override, define NEXT_PUBLIC_SUPABASE_URL and
 // NEXT_PUBLIC_SUPABASE_ANON_KEY in your project settings.
 export const SUPABASE_URL = 
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://ovvcnarqrqjrnzfetcsf.supabase.co"
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://hlyolqlxrwpgcjutvmtk.co"
 
 export const SUPABASE_ANON_KEY = 
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_9GNjZBpxSDG2i2b6MYRAsw_l9uwoQ22"
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhseW9scWx4cndwZ2NqdXR2bXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzY0MzUsImV4cCI6MjEwMjkxMjQzNX0.uGQ02j6-iPI9DeUACqu3fQLIUTZhaSyGHNByMLUhCqw"
 
 // The one account that is granted Super-Admin authority across the app.
 export const ADMIN_EMAIL = "vijaybhaskar.ch9045@gmail.com"
