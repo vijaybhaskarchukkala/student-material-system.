@@ -14,6 +14,9 @@ export function PostItem({
     price: number
     image: string
     owner: string
+    pickup_place: string
+    pickup_time: string
+    phone: string
   }) => Promise<void>
 }) {
   const [title, setTitle] = useState("")
@@ -22,13 +25,20 @@ export function PostItem({
   const [isFree, setIsFree] = useState(false)
   const [details, setDetails] = useState("")
   const [pickupPlace, setPickupPlace] = useState("")
+  const [pickupTime, setPickupTime] = useState("")
   const [phone, setPhone] = useState("")
   const [image, setImage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const canSubmit = title.trim().length > 0 && details.trim().length > 0 && !submitting
+  // Title, Details, Pickup Place, మరియు Pickup Time అన్నీ తప్పనిసరి (Mandatory), Phone ఒక్కటే ఆప్షనల్
+  const canSubmit =
+    title.trim().length > 0 &&
+    details.trim().length > 0 &&
+    pickupPlace.trim().length > 0 &&
+    pickupTime.trim().length > 0 &&
+    !submitting
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -45,13 +55,14 @@ export function PostItem({
     setSubmitting(true)
     setError(null)
     try {
-     await onSubmit({
+      await onSubmit({
         title: title.trim(),
         category,
         price: isFree ? 0 : Number(price) || 0,
         image: image ?? "/items/textbooks.png",
         owner: details.trim(),
         pickup_place: pickupPlace.trim(),
+        pickup_time: pickupTime,
         phone: phone.trim(),
       })
     } catch (err) {
@@ -171,24 +182,43 @@ export function PostItem({
             className="input resize-none leading-relaxed"
           />
         </Field>
-       <Field label="Pickup Place">
-      <input
-        value={pickupPlace}
-        onChange={(e) => setPickupPlace(e.target.value)}
-        placeholder="Canteen"
-        className="input"
-      />
-    </Field>
 
-    <Field label="Phone number (Optional)">
-      <input
-        type="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="e.g. 9876543210"
-        className="input"
-      />
-    </Field>
+        <Field label="Pickup Place">
+          <input
+            value={pickupPlace}
+            onChange={(e) => setPickupPlace(e.target.value)}
+            placeholder="Canteen"
+            className="input"
+          />
+        </Field>
+
+        <Field label="Pickup Time">
+          <div className="relative">
+            <select
+              value={pickupTime}
+              onChange={(e) => setPickupTime(e.target.value)}
+              className="input appearance-none pr-9"
+            >
+              <option value="">Select pickup time</option>
+              <option value="Break time">Break time</option>
+              <option value="Lunch time">Lunch time</option>
+              <option value="College closing time">College closing time</option>
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              ▾
+            </span>
+          </div>
+        </Field>
+
+        <Field label="Phone number (Optional)">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="e.g. 9876543210"
+            className="input"
+          />
+        </Field>
 
         {error && (
           <p role="alert" className="text-sm font-medium text-destructive">
