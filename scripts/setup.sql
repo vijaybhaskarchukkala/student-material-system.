@@ -50,7 +50,7 @@ create table if not exists public.listings (
 );
 alter table public.listings add column if not exists pickup_place text;
 alter table public.listings add column if not exists phone        text;
-
+alter table public.listings add column if not exists pickup_time text;
 alter table public.listings enable row level security;
 
 -- requests --------------------------------------------------------------------
