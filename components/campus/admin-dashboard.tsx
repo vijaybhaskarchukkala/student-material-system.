@@ -13,6 +13,9 @@ type AdminTab = "users" | "listings" | "reviews" | "announcements" | "broadcast"
 
 export function AdminDashboard({ onBack }: { onBack: () => void }) {
   const { user, profile, isAdmin, listings, reloadListings } = useSession()
+  const userPhone = (profile as any)?.phone || (profile as any)?.phone_number || ""
+  const [showPhoneWarning, setShowPhoneWarning] = useState(false)
+
   const [tab, setTab] = useState<AdminTab>("users")
 
   const [title, setTitle] = useState("")
@@ -169,6 +172,13 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
 
   async function handleSendAnnouncement(e: React.FormEvent, audienceType: "all" | "faculty_admin") {
     e.preventDefault()
+    
+    // ఫోన్ నంబర్ లేకపోతే వార్నింగ్ పాప్‌అప్ చూపించు
+    if (!userPhone) {
+      setShowPhoneWarning(true)
+      return
+    }
+
     if (!message.trim() || submitType !== null) return
     setSubmitType(audienceType)
     
@@ -750,6 +760,38 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phone Number Warning Popup */}
+      {showPhoneWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-foreground">Phone Number Required</h3>
+              <button
+                type="button"
+                onClick={() => setShowPhoneWarning(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              To make any operations first add your number in profile page or add your number by clicking add phone number button below
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowPhoneWarning(false)
+                localStorage.setItem("open_phone_modal", "true")
+                onBack()
+              }}
+              className="mt-2 w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 active:scale-[0.99]"
+            >
+              Add phone number
+            </button>
           </div>
         </div>
       )}
