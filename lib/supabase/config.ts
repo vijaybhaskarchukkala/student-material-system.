@@ -7,10 +7,10 @@
 // not set. To override, define NEXT_PUBLIC_SUPABASE_URL and
 // NEXT_PUBLIC_SUPABASE_ANON_KEY in your project settings.
 export const SUPABASE_URL = 
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://hlyolqlxrwpgcjutvmtk.co"
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://kemplzeojjgrumyzusso.co"
 
 export const SUPABASE_ANON_KEY = 
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhseW9scWx4cndwZ2NqdXR2bXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzY0MzUsImV4cCI6MjEwMjkxMjQzNX0.uGQ02j6-iPI9DeUACqu3fQLIUTZhaSyGHNByMLUhCqw"
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlbXBsemVvampncnVteXp1c3NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0MzMxMDAsImV4cCI6MjEwMzAwOTEwMH0.tPRS9kMb3zPgds6WQ1JS803fgf0SUPwAjpUwH9SwBa8"
 
 // The one account that is granted Super-Admin authority across the app.
 export const ADMIN_EMAIL = "vijaybhaskar.ch9045@gmail.com"
