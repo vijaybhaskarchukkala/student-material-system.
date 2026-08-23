@@ -22,10 +22,11 @@ export function CampusApp() {
   const { user, profile, isAdmin, listings, reloadListings, reloadProfile } = useSession()
   const [tab, setTab] = useState<Tab>("home")
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showPhoneWarning, setShowPhoneWarning] = useState(false)
 
   const userId = user!.id
   const username = profile?.username ?? "student"
-  const userPhone = (profile as any)?.phone ?? ""
+  const userPhone = (profile as any)?.phone || (profile as any)?.phone_number || ""
   const isFaculty = profile?.role === "faculty"
 
   // Always derive the selected item from the live list so its status stays fresh.
@@ -34,7 +35,6 @@ export function CampusApp() {
     [selectedId, listings],
   )
 
-  // బాటమ్ నేవిగేషన్‌లో ఎటువంటి నంబర్ (Badge count) కనిపించకుండా 0 కి సెట్ చేయబడింది
   const notificationCount = 0
 
   function openItem(item: Item) {
@@ -42,6 +42,10 @@ export function CampusApp() {
   }
 
   async function handleRequest(item: Item) {
+    if (!userPhone) {
+      setShowPhoneWarning(true)
+      return
+    }
     await requestListing(item, userId, username, userPhone)
     reloadListings()
   }
@@ -70,6 +74,10 @@ export function CampusApp() {
     image: string
     owner: string
   }) {
+    if (!userPhone) {
+      setShowPhoneWarning(true)
+      return
+    }
     await createListing({
       owner_id: userId,
       owner_username: username,
@@ -80,6 +88,10 @@ export function CampusApp() {
   }
 
   function changeTab(next: Tab) {
+    if (next === "post" && !userPhone) {
+      setShowPhoneWarning(true)
+      return
+    }
     setSelectedId(null)
     setTab(next)
   }
@@ -109,17 +121,23 @@ export function CampusApp() {
                   onMarkSold={handleMarkSold}
                   onReset={handleReset}
                   onOpen={openItem}
-                  onPost={() => changeTab("post")}
+                  onPost={() => {
+                    if (!userPhone) {
+                      setShowPhoneWarning(true)
+                      return
+                    }
+                    changeTab("post")
+                  }}
                 />
               )}
               {tab === "post" && <PostItem onSubmit={handleAdd} />}
               {tab === "notifications" && (
                 <NotificationsScreen 
-                items={listings} 
-                currentUserId={userId} 
-                isAdmin={isAdmin}
-               isFaculty={profile?.role === "faculty"} 
-               />
+                  items={listings} 
+                  currentUserId={userId} 
+                  isAdmin={isAdmin}
+                  isFaculty={profile?.role === "faculty"} 
+                />
               )}
               {tab === "profile" && <ProfileScreen />}
             </>
@@ -127,6 +145,38 @@ export function CampusApp() {
         </div>
 
         {!selected && <BottomNav active={tab} onChange={changeTab} notificationCount={notificationCount} />}
+
+        {showPhoneWarning && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-foreground">Phone Number Required</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPhoneWarning(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                To make any operations first add your number in profile page or add your number by clicking add phone number button below
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPhoneWarning(false)
+                  localStorage.setItem("open_phone_modal", "true")
+                  setSelectedId(null)
+                  setTab("profile")
+                }}
+                className="mt-2 w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 active:scale-[0.99]"
+              >
+                Add phone number
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
