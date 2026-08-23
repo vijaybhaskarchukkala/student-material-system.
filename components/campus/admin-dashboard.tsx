@@ -44,7 +44,29 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
   }, [user?.id])
 
   const { data: profiles, mutate: reloadProfiles, isLoading: profilesLoading } = useSWR("admin-profiles", fetchAllProfiles)
-  const { data: reviews, isLoading: reviewsLoading } = useSWR("admin-reviews", fetchReviews)
+  
+  // FIXED: Fetch from faculty_complaints for Faculty dashboard, and fetchReviews for Admin
+  const { data: reviews, isLoading: reviewsLoading } = useSWR(
+    isAdmin ? "admin-reviews" : "faculty-complaints-list",
+    async () => {
+      const supabase = getSupabase()
+      if (isAdmin) {
+        return await fetchReviews()
+      } else {
+        const { data, error } = await supabase
+          .from("faculty_complaints")
+          .select("*")
+          .order("created_at", { ascending: false })
+        if (error) throw error
+        return (data || []).map((item: any) => ({
+          ...item,
+          category: "Complaint to Faculty"
+        }))
+      }
+    },
+    { refreshInterval: 1000 }
+  )
+
   const { data: announcements, mutate: reloadAnnouncements, isLoading: announcementsLoading } = useSWR("admin-announcements", async () => {
     const supabase = getSupabase()
     const { data, error } = await supabase.from("announcements").select("*").order("created_at", { ascending: false })
@@ -125,6 +147,16 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
         return
       } catch (err) {
         console.error("Failed to delete permanently:", err)
+      }
+    }
+
+    // For faculty or screen hide
+    if (!isAdmin) {
+      try {
+        const supabase = getSupabase()
+        await supabase.from("faculty_complaints").delete().eq("id", reviewId)
+      } catch (err) {
+        console.error("Failed to delete faculty complaint:", err)
       }
     }
 
@@ -237,9 +269,6 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
 
   const displayedReviews = (reviews ?? []).filter((r) => {
     if (hiddenReviewIds.includes(r.id)) return false;
-    if (!isAdmin) {
-      return r.category === "Complaint to Faculty";
-    }
     return true;
   });
 
@@ -693,7 +722,7 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
           backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999
         }}>
           <div style={{ background: '#1e1e1e', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', textAlign: 'center', border: '1px solid #333' }}>
-            <h3 style={{ color: '#fff', marginBottom: '12px', fontSize: '18px' }}>Delete Options</h3>
+            <h3 style={{ color: '#fff', marginBottom: '12px', fontSize: '18px' }}>Delete Options చేయండి</h3>
             <p style={{ color: '#aaa', marginBottom: '20px', fontSize: '14px' }}>Choose how you want to delete this item:</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -710,7 +739,7 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
                 onClick={() => handleDeleteChoice('me', deleteModalAnn)}
                 style={{ padding: '12px', background: '#374151', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                Delete from Me`
+                Delete from Me
               </button>
               
               <button 
