@@ -722,7 +722,7 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
           backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999
         }}>
           <div style={{ background: '#1e1e1e', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', textAlign: 'center', border: '1px solid #333' }}>
-            <h3 style={{ color: '#fff', marginBottom: '12px', fontSize: '18px' }}>Delete Options చేయండి</h3>
+            <h3 style={{ color: '#fff', marginBottom: '12px', fontSize: '18px' }}>Delete Options</h3>
             <p style={{ color: '#aaa', marginBottom: '20px', fontSize: '14px' }}>Choose how you want to delete this item:</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
