@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   ListChecks,
   Clock,
@@ -26,6 +26,13 @@ export function ProfileScreen() {
   const [showAdmin, setShowAdmin] = useState(false)
   const [showFacultyDash, setShowFacultyDash] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+
+  useEffect(() => {
+    if (localStorage.getItem("open_phone_modal") === "true") {
+      localStorage.removeItem("open_phone_modal")
+      setShowSettings(true)
+    }
+  }, [])
 
   async function handleLogout() {
     setLoggingOut(true)
