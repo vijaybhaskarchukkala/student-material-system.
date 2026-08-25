@@ -25,6 +25,7 @@ export function ProfileScreen() {
   const [showReview, setShowReview] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [showFacultyDash, setShowFacultyDash] = useState(false)
+  const [showPhoneWarning, setShowPhoneWarning] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
@@ -159,7 +160,18 @@ export function ProfileScreen() {
 
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <MenuButton icon={Settings} label="Account settings" onClick={() => setShowSettings(true)} />
-          <MenuButton icon={MessageSquareHeart} label="Give Review or Complaint on any User" onClick={() => setShowReview(true)} last />
+          <MenuButton
+            icon={MessageSquareHeart}
+            label="Give Review or Complaint on any User"
+            onClick={() => {
+              if (!phoneNumber) {
+                setShowPhoneWarning(true)
+                return
+              }
+              setShowReview(true)
+            }}
+            last
+          />
         </section>
         <p className="text-xs text-muted-foreground px-1 -mt-3 leading-relaxed">
           Hint: You can give complaint on any user and it is private and viewable only by the admin.
@@ -187,7 +199,49 @@ export function ProfileScreen() {
           onUsernameUpdated={reloadProfile}
         />
       )}
-      {showReview && <GiveReview userId={userId} username={username} onClose={() => setShowReview(false)} />}
+      {showReview && (
+        <GiveReview
+          userId={userId}
+          username={username}
+          phone={phoneNumber}
+          onClose={() => setShowReview(false)}
+          onPhoneRequired={() => {
+            setShowReview(false)
+            setShowPhoneWarning(true)
+          }}
+        />
+      )}
+
+      {showPhoneWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-foreground">Phone Number Required</h3>
+              <button
+                type="button"
+                onClick={() => setShowPhoneWarning(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              To make any operations first add your number in profile page or add your number by clicking add phone number button below
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowPhoneWarning(false)
+                localStorage.setItem("open_phone_modal", "true")
+                setShowSettings(true)
+              }}
+              className="mt-2 w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 active:scale-[0.99]"
+            >
+              Add phone number
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
