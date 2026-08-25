@@ -484,6 +484,12 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
                       </span>
                     )}
                   </div>
+                  {r.phone && (
+                    <p className="mt-1 text-xs font-medium text-primary">Phone: {r.phone}</p>
+                  )}
+                  {isAdmin && r.faculty_username && (
+                    <p className="mt-1 text-xs font-medium text-purple-500">Faculty: @{r.faculty_username}</p>
+                  )}
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{r.message}</p>
                   <span className="mt-2 block text-[10px] text-muted-foreground">
                     {new Date(r.created_at).toLocaleString()}
