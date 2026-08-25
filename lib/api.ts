@@ -141,28 +141,66 @@ export async function fetchReviews() {
   return data || []
 }
 
-export async function submitReview(userId: string, username: string, category: string, message: string): Promise<void> {
+export async function fetchFacultyProfiles(): Promise<Pick<Profile, "id" | "username">[]> {
   const supabase = getSupabase()
-  
-  // 1. అడ్మిన్ చూసే 'complaints' టేబుల్‌లో అన్ని మెసేజ్‌లు సేవ్ అవుతాయి
-  const { error } = await supabase.from("complaints").insert({  
-    user_id: userId, 
-    username, 
-    category, 
-    message: message.trim()  
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username")
+    .eq("role", "faculty")
+    .eq("is_banned", false)
+    .order("username", { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as Pick<Profile, "id" | "username">[]
+}
+
+export async function submitReview(
+  userId: string,
+  username: string,
+  phone: string,
+  category: string,
+  message: string,
+  targetFacultyId?: string | null,
+  targetFacultyUsername?: string | null,
+): Promise<void> {
+  const supabase = getSupabase()
+  const cleanMessage = message.trim()
+  const isFacultyComplaint = category === "Complaint to Faculty"
+
+  if (!phone?.trim()) {
+    throw new Error("Phone number is required before sending feedback or a complaint.")
+  }
+
+  if (isFacultyComplaint && !targetFacultyId) {
+    throw new Error("Please select a faculty member.")
+  }
+
+  // Always store the message in the admin-visible complaints table.
+  const { error } = await supabase.from("complaints").insert({
+    user_id: userId,
+    username,
+    phone: phone.trim(),
+    category,
+    message: cleanMessage,
+    faculty_id: isFacultyComplaint ? targetFacultyId : null,
+    faculty_username: isFacultyComplaint ? targetFacultyUsername : null,
   })
   if (error) throw error
 
-  // 2. కేవలం 'Complaint to Faculty' అయితేనే ఫ్యాకల్టీ టేబుల్‌కి వెళ్తుంది (try-catch తో సేఫ్‌గా)
-  if (category === "Complaint to Faculty") {
-    try {
-      await supabase.from("faculty_complaints").insert({
-        user_id: userId,
-        username,
-        message: message.trim()
-      })
-    } catch (err) {
-      console.error("Faculty complaint insert error:", err)
+  // Faculty complaints are additionally routed to exactly one selected faculty member.
+  if (isFacultyComplaint) {
+    const { error: facultyError } = await supabase.from("faculty_complaints").insert({
+      user_id: userId,
+      username,
+      phone: phone.trim(),
+      category,
+      message: cleanMessage,
+      faculty_id: targetFacultyId,
+      faculty_username: targetFacultyUsername,
+    })
+
+    if (facultyError) {
+      throw facultyError
     }
   }
 }
