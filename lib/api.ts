@@ -141,30 +141,52 @@ export async function fetchReviews() {
   return data || []
 }
 
-export async function submitReview(userId: string, username: string, category: string, message: string): Promise<void> {
+export async function submitReview(
+  userId: string,
+  username: string,
+  category: string,
+  message: string,
+  facultyIds: string[] = [],
+): Promise<void> {
   const supabase = getSupabase()
-  
-  // 1. అడ్మిన్ చూసే 'complaints' టేబుల్‌లో అన్ని మెసేజ్‌లు సేవ్ అవుతాయి
-  const { error } = await supabase.from("complaints").insert({  
-    user_id: userId, 
-    username, 
-    category, 
-    message: message.trim()  
+
+  // 1. అడ్మిన్ చూసే 'complaints' టేబుల్‌లో అన్ని మెసేజ్‌లు సేవ్ అవుతాయి (admin always sees everything)
+  const { error } = await supabase.from("complaints").insert({
+    user_id: userId,
+    username,
+    category,
+    message: message.trim(),
   })
   if (error) throw error
 
-  // 2. కేవలం 'Complaint to Faculty' అయితేనే ఫ్యాకల్టీ టేబుల్‌కి వెళ్తుంది (try-catch తో సేఫ్‌గా)
+  // 2. కేవలం 'Complaint to Faculty' అయితేనే ఫ్యాకల్టీ టేబుల్‌కి వెళ్తుంది, only the selected faculty can see it
   if (category === "Complaint to Faculty") {
     try {
       await supabase.from("faculty_complaints").insert({
         user_id: userId,
         username,
-        message: message.trim()
+        message: message.trim(),
+        target_faculty_ids: facultyIds,
       })
     } catch (err) {
       console.error("Faculty complaint insert error:", err)
     }
   }
+}
+
+/** All profiles with role = 'faculty', used to populate the faculty picker dropdown. */
+export async function fetchFacultyList(): Promise<Profile[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("role", "faculty")
+    .order("username", { ascending: true })
+  if (error) {
+    console.error("Error fetching faculty list:", error)
+    return []
+  }
+  return (data ?? []) as Profile[]
 }
 export async function deleteReview(id: string): Promise<void> {
   const supabase = getSupabase()
