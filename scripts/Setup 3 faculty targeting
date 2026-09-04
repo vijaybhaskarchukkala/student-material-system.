@@ -1,0 +1,19 @@
+-- ----------------------------------------------------------------------------
+-- Faculty targeting for "Complaint to Faculty" messages.
+-- Run this once in the Supabase SQL editor (after setup.sql / setup-2.sql).
+-- ----------------------------------------------------------------------------
+
+-- 1. Add a column that stores which faculty members a complaint was sent to.
+alter table public.faculty_complaints
+  add column if not exists target_faculty_ids uuid[] not null default '{}'::uuid[];
+
+-- 2. Replace the old "any staff can see everything" policy with one that
+--    only lets a faculty member see complaints they were specifically
+--    targeted with. Admins can still see everything via the "complaints"
+--    table (unchanged), and are also allowed here for completeness.
+drop policy if exists "faculty_complaints_select_staff" on public.faculty_complaints;
+create policy "faculty_complaints_select_targeted" on public.faculty_complaints
+  for select using (
+    public.is_admin()
+    or auth.uid() = any(target_faculty_ids)
+  );
