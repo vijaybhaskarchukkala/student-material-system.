@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Category, Item } from "@/lib/campus-data"
 import {
   createListing,
@@ -23,6 +23,16 @@ export function CampusApp() {
   const [tab, setTab] = useState<Tab>("home")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showPhoneWarning, setShowPhoneWarning] = useState(false)
+
+  // Deep link support: a tapped push notification opens "/?tab=notifications"
+  // — land the user straight on that tab instead of Home.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const requestedTab = params.get("tab") as Tab | null
+    if (requestedTab && ["home", "notifications", "post", "listings", "profile"].includes(requestedTab)) {
+      setTab(requestedTab)
+    }
+  }, [])
 
   const userId = user!.id
   const username = profile?.username ?? "student"
