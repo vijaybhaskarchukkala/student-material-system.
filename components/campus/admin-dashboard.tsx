@@ -50,15 +50,17 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
   
   // FIXED: Fetch from faculty_complaints for Faculty dashboard, and fetchReviews for Admin
   const { data: reviews, isLoading: reviewsLoading } = useSWR(
-    isAdmin ? "admin-reviews" : "faculty-complaints-list",
+    isAdmin ? "admin-reviews" : user?.id ? `faculty-complaints-list-${user.id}` : null,
     async () => {
       const supabase = getSupabase()
       if (isAdmin) {
         return await fetchReviews()
       } else {
+        // Only show complaints this specific faculty member was targeted with.
         const { data, error } = await supabase
           .from("faculty_complaints")
           .select("*")
+          .contains("target_faculty_ids", [user?.id])
           .order("created_at", { ascending: false })
         if (error) throw error
         return (data || []).map((item: any) => ({
