@@ -209,18 +209,30 @@ export function AdminDashboard({ onBack }: { onBack: () => void }) {
       const senderName = profile?.username || user?.email?.split("@")[0] || "Admin"
       const finalTitle = title.trim() || (audienceType === "faculty_admin" ? "Broadcast Message" : "Platform Announcement")
 
-      const { error: insertError } = await supabase.from("announcements").insert({
-        title: finalTitle,
-        message: message.trim(),
-        image_url: imageUrl,
-        link_url: linkUrl.trim() || null,
-        link_text: linkUrl.trim() ? (linkText.trim() || "View") : "View",
-        target_audience: audienceType,
-        user_id: user?.id,
-        username: senderName,
-      })
+      const { data: insertedAnnouncement, error: insertError } = await supabase
+        .from("announcements")
+        .insert({
+          title: finalTitle,
+          message: message.trim(),
+          image_url: imageUrl,
+          link_url: linkUrl.trim() || null,
+          link_text: linkUrl.trim() ? (linkText.trim() || "View") : "View",
+          target_audience: audienceType,
+          user_id: user?.id,
+          username: senderName,
+        })
+        .select()
+        .single()
 
       if (insertError) throw insertError
+
+      // Trigger the push notification directly (instead of a Database
+      // Webhook, which some projects don't provision by default).
+      if (insertedAnnouncement) {
+        void supabase.functions
+          .invoke("send-push", { body: { table: "announcements", record: insertedAnnouncement } })
+          .catch((err) => console.error("send-push invoke failed:", err))
+      }
 
       setTitle("")
       setMessage("")
