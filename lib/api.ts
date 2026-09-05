@@ -141,6 +141,20 @@ export async function fetchReviews() {
   return data || []
 }
 
+/**
+ * Calls the send-push Edge Function directly (instead of relying on a
+ * Database Webhook, which some projects don't provision by default).
+ * Fire-and-forget — a push failure should never break the main action.
+ */
+async function triggerPush(table: string, record: Record<string, any>) {
+  try {
+    const supabase = getSupabase()
+    await supabase.functions.invoke("send-push", { body: { table, record } })
+  } catch (err) {
+    console.error("send-push invoke failed:", err)
+  }
+}
+
 export async function submitReview(
   userId: string,
   username: string,
@@ -158,6 +172,9 @@ export async function submitReview(
     message: message.trim(),
   })
   if (error) throw error
+  // Built from what we already know (RLS blocks a student from reading the
+  // row straight back), rather than re-selecting it from the database.
+  void triggerPush("complaints", { category, message: message.trim() })
 
   // 2. కేవలం 'Complaint to Faculty' అయితేనే ఫ్యాకల్టీ టేబుల్‌కి వెళ్తుంది, only the selected faculty can see it
   if (category === "Complaint to Faculty") {
@@ -168,6 +185,7 @@ export async function submitReview(
         message: message.trim(),
         target_faculty_ids: facultyIds,
       })
+      void triggerPush("faculty_complaints", { message: message.trim(), target_faculty_ids: facultyIds })
     } catch (err) {
       console.error("Faculty complaint insert error:", err)
     }
